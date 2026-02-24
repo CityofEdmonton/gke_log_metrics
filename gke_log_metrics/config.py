@@ -13,7 +13,7 @@ class Config:
     def __init__(self, config_file: Optional[str] = None):
         # defaults
         self.APP_NAME = "default_app"
-        self.APP_TYPE = "gke_job"
+        self.APP_TYPE = "default_type"
         self.METRICS_ENABLED = True
         self.PROMETHEUS_ENABLED = False
         self.LOG_LEVEL = "INFO"
