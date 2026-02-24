@@ -20,8 +20,7 @@ class Logger:
             ch.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
             self.logger.addHandler(ch)
 
-        # counter for JSON metric messages
-        self._json_counter = 0
+        # no internal json counter anymore; json_metric receives name/value
 
     def log(self, message: str, info: Optional[Dict[str, Any]] = None, level: str = "info", extra: Optional[Dict[str, Any]] = None, app_name: Optional[str] = None, app_type: Optional[str] = None) -> None:
         """Normal application log that follows LOG_LEVEL."""
@@ -31,26 +30,30 @@ class Logger:
         else:
             log_method(f"{message} | info={info}")
 
-    def json_metric(self, message: str, info: Optional[Dict[str, Any]] = None, level: str = "info", app_name: Optional[str] = None, app_type: Optional[str] = None, extra: Optional[Dict[str, Any]] = None) -> None:
+    def json_metric(self, name: str, value: float = 1.0, info: Optional[Dict[str, Any]] = None, app_name: Optional[str] = None, app_type: Optional[str] = None, extra: Optional[Dict[str, Any]] = None, message: Optional[str] = None) -> None:
         """Emit a log-based metric as JSON to STDOUT.
 
-        If METRICS_ENABLED in config is True, this will be printed regardless
+        Signature mirrors `prometheus_metric` by accepting `name` and `value`.
+        If `METRICS_ENABLED` in config is True, this will be printed regardless
         of `LOG_LEVEL`.
         """
         if not self.cfg.METRICS_ENABLED:
             return
 
-        self._json_counter += 1
-
         entry = {
             "info": info or {},
             "app_name": app_name or self.cfg.APP_NAME,
             "app_type": app_type or self.cfg.APP_TYPE,
-            "message": message,
-            "counter": self._json_counter,
+            # include metric identification and value
+            "metric_name": name,
+            "metric_value": value,
             "event_type": "metric",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+        # optional human message
+        if message:
+            entry["message"] = message
 
         if extra:
             for k, v in extra.items():
@@ -78,15 +81,17 @@ class Logger:
             self.prometheus_metric(name, value, labels=labels)
 
         if self.cfg.METRICS_ENABLED:
-            # build a message if not provided
-            msg = message or name
+            # build extra payload and call json_metric with name/value
             extra2 = extra or {}
-            # include metric name and value in extra fields
-            extra2.setdefault("metric_name", name)
-            extra2.setdefault("metric_value", value)
+            # include labels and other metadata
             if labels:
                 extra2.setdefault("labels", labels)
-            self.json_metric(msg, info=info, extra=extra2, app_name=app_name, app_type=app_type)
+            # pass optional human message through
+            # determine effective app_name/app_type using config defaults when None
+            effective_app_name = app_name or self.cfg.APP_NAME
+            effective_app_type = app_type or self.cfg.APP_TYPE
+
+            self.json_metric(name, value, info=info, extra=extra2, app_name=effective_app_name, app_type=effective_app_type, message=message)
 
     def metrics_to_prometheus(self) -> str:
         return metrics.to_prometheus()

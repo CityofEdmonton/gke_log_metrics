@@ -16,15 +16,14 @@ def test_json_metric_prints_when_enabled(capsys, monkeypatch):
     cfg.METRICS_ENABLED = True
     logger = get_logger(cfg)
 
-    logger.json_metric('test_metric', info={'a': 1}, extra={'x': 'y'})
+    logger.json_metric('test_metric', 1.0, info={'a': 1}, extra={'x': 'y'})
     out = capsys.readouterr().out.strip()
     obj = json.loads(out)
-
-    assert obj['message'] == 'test_metric'
+    assert obj['metric_name'] == 'test_metric'
+    assert obj['metric_value'] == 1.0
     assert obj['info']['a'] == 1
     assert obj['x'] == 'y'
     assert obj['app_name'] == 'default_app'
-    assert obj['counter'] == 1
     assert obj['event_type'] == 'metric'
 
 
@@ -35,7 +34,7 @@ def test_json_metric_not_prints_when_disabled(capsys, monkeypatch):
     cfg.METRICS_ENABLED = False
     logger = get_logger(cfg)
 
-    logger.json_metric('test_metric', info={'a': 1})
+    logger.json_metric('test_metric', 1.0, info={'a': 1})
     out = capsys.readouterr().out.strip()
 
     assert out == ''
@@ -47,7 +46,7 @@ def test_app_name_defaulting(monkeypatch, capsys):
     cfg = Config()
     logger = get_logger(cfg)
 
-    logger.json_metric('msg1', info={})
+    logger.json_metric('msg1', 1.0, info={})
     out = capsys.readouterr().out.strip()
     obj = json.loads(out)
 
@@ -60,7 +59,7 @@ def test_app_name_env_override(monkeypatch, capsys):
     cfg = Config()
     logger = get_logger(cfg)
 
-    logger.json_metric('msg1', info={})
+    logger.json_metric('msg1', 1.0, info={})
     out = capsys.readouterr().out.strip()
     obj = json.loads(out)
 
@@ -118,21 +117,22 @@ def test_config_env_overrides_file(tmp_path, monkeypatch):
 
 
 def test_metrics_counter_increments(capsys, monkeypatch):
-    """Verify counter field increments across multiple metric logs."""
+    """Verify metric_value is exactly the provided value (no internal increment)."""
     monkeypatch.delenv('METRICS_ENABLED', raising=False)
     cfg = Config()
     cfg.METRICS_ENABLED = True
     logger = get_logger(cfg)
 
-    logger.json_metric('msg1')
+    logger.json_metric('m', 1.0)
     obj1 = json.loads(capsys.readouterr().out.strip())
-    
-    logger.json_metric('msg2')
+
+    logger.json_metric('m', 2.0)
     obj2 = json.loads(capsys.readouterr().out.strip())
-    
-    logger.json_metric('msg3')
+
+    logger.json_metric('m', 3.5)
     obj3 = json.loads(capsys.readouterr().out.strip())
 
-    assert obj1['counter'] == 1
-    assert obj2['counter'] == 2
-    assert obj3['counter'] == 3
+    # metric_value should match the provided value exactly
+    assert obj1['metric_value'] == 1.0
+    assert obj2['metric_value'] == 2.0
+    assert obj3['metric_value'] == 3.5

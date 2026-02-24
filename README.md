@@ -4,7 +4,7 @@ Minimal, production-ready library for emitting structured JSON metrics/logs (des
 
 **Key features:**
 - JSON-based structured logging with fixed and extensible fields
-- Monotonic counter per metric stream for correlation
+- JSON metrics that accept `name` and `value` (no internal auto-increment)
 - Optional Prometheus-format metrics export
 - Configuration precedence: env vars > `.configs` JSON file > defaults
 - Minimal dependencies (stdlib only)
@@ -37,7 +37,7 @@ logger = get_logger(cfg)
 logger.log("Application started", info={"phase": "startup"})
 
 # Emit a log-based metric (JSON to stdout if METRICS_ENABLED)
-logger.json_metric("backup_completed", info={"job": "j1", "status": "success"})
+logger.json_metric("backup_completed", 1, info={"job": "j1", "status": "success"})
 
 # Unified metric API (updates Prometheus + emits JSON if enabled)
 logger.metric("backup_checks_total", 1, labels={"job": "j1"})
@@ -124,35 +124,37 @@ Emit a JSON metric to stdout (always prints if `METRICS_ENABLED=true`, regardles
 
 ```python
 logger.json_metric(
-    message: str,
-    info: Optional[Dict[str, Any]] = None,
-    level: str = "info",
-    app_name: Optional[str] = None,
-    app_type: Optional[str] = None,
-    extra: Optional[Dict[str, Any]] = None
+        name: str,
+        value: float = 1.0,
+        info: Optional[Dict[str, Any]] = None,
+        app_name: Optional[str] = None,
+        app_type: Optional[str] = None,
+        extra: Optional[Dict[str, Any]] = None,
+        message: Optional[str] = None,
 )
 ```
 
 **Emitted JSON schema:**
 ```json
 {
-  "info": { "custom": "object" },
-  "app_name": "my_app",
-  "app_type": "gke_job",
-  "message": "metric message",
-  "counter": 1,
-  "event_type": "metric",
-  "timestamp": "2026-02-24T19:12:52.123456+00:00",
-  "custom_field": "value"
+    "info": { "custom": "object" },
+    "app_name": "my_app",
+    "app_type": "gke_job",
+    "metric_name": "backup_completed",
+    "metric_value": 1.0,
+    "event_type": "metric",
+    "timestamp": "2026-02-24T19:12:52.123456+00:00",
+    "custom_field": "value"
 }
 ```
 
 **Example:**
 ```python
 logger.json_metric(
-    "backup_verified",
-    info={"job": "daily", "status": "success", "size_bytes": 1048576},
-    extra={"duration_seconds": 45.3}
+        "backup_verified",
+        1.0,
+        info={"job": "daily", "status": "success", "size_bytes": 1048576},
+        extra={"duration_seconds": 45.3}
 )
 ```
 
@@ -259,7 +261,7 @@ def metrics():
 When `METRICS_ENABLED=true`:
 - `json_metric()` prints JSON to stdout **always**, ignoring `LOG_LEVEL`
 - `metric()` emits JSON to stdout (if `METRICS_ENABLED`) and updates Prometheus (if enabled)
-- Each JSON metric has a monotonically increasing `counter` field for correlation
+- `json_metric()` accepts `name` and `value`; there is no internal auto-incrementing `counter` field
 
 ### Disabled Metrics
 When `METRICS_ENABLED=false`:
@@ -270,6 +272,10 @@ When `METRICS_ENABLED=false`:
 - `app_name` defaults to `config.APP_NAME` when not provided
 - `app_type` defaults to `config.APP_TYPE` when not provided
 - Both can be overridden per call
+
+Notes:
+- When you call `json_metric(...)` or `metric(...)` and do not provide `app_name`/`app_type`, the library will use `Config.APP_NAME` and `Config.APP_TYPE` respectively.
+- `metric(...)` will pass these effective values to the JSON metric output so the emitted log always contains `app_name` and `app_type`.
 
 ## Development
 
