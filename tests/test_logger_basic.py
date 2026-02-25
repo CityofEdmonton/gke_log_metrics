@@ -12,6 +12,7 @@ def test_json_metric_prints_when_enabled(capsys, monkeypatch):
     """Verify json_metric prints JSON to stdout when METRICS_ENABLED."""
     monkeypatch.delenv('APP_NAME', raising=False)
     monkeypatch.delenv('METRICS_ENABLED', raising=False)
+    monkeypatch.delenv('OWNER', raising=False)
     cfg = Config()
     cfg.METRICS_ENABLED = True
     logger = get_logger(cfg)
@@ -24,6 +25,7 @@ def test_json_metric_prints_when_enabled(capsys, monkeypatch):
     assert obj['info']['a'] == 1
     assert obj['x'] == 'y'
     assert obj['app_name'] == 'default_app'
+    assert obj['owner'] == 'default_owner'
     assert obj['event_type'] == 'metric'
 
 
@@ -56,6 +58,7 @@ def test_app_name_defaulting(monkeypatch, capsys):
 def test_app_name_env_override(monkeypatch, capsys):
     """Verify APP_NAME from env overrides config."""
     monkeypatch.setenv('APP_NAME', 'my_custom_app')
+    monkeypatch.delenv('OWNER', raising=False)
     cfg = Config()
     logger = get_logger(cfg)
 
@@ -66,10 +69,24 @@ def test_app_name_env_override(monkeypatch, capsys):
     assert obj['app_name'] == 'my_custom_app'
 
 
+def test_owner_env_override(monkeypatch, capsys):
+    """Verify OWNER from env overrides config."""
+    monkeypatch.setenv('OWNER', 'platform_team')
+    cfg = Config()
+    logger = get_logger(cfg)
+
+    logger.json_metric('msg1', 1.0, info={})
+    out = capsys.readouterr().out.strip()
+    obj = json.loads(out)
+
+    assert obj['owner'] == 'platform_team'
+
+
 def test_metric_updates_prometheus_and_json(capsys, monkeypatch):
     """Verify metric() updates both Prometheus metrics and emits JSON."""
     monkeypatch.delenv('PROMETHEUS_ENABLED', raising=False)
     monkeypatch.delenv('METRICS_ENABLED', raising=False)
+    monkeypatch.delenv('OWNER', raising=False)
     cfg = Config()
     cfg.PROMETHEUS_ENABLED = True
     cfg.METRICS_ENABLED = True
@@ -83,6 +100,7 @@ def test_metric_updates_prometheus_and_json(capsys, monkeypatch):
     assert obj['message'] == 'Check done'
     assert obj['metric_name'] == 'backup_checks'
     assert obj['metric_value'] == 1
+    assert obj['owner'] == 'default_owner'
     assert obj['labels'] == {'job': 'j1'}
     assert obj['info']['size'] == 100
 
@@ -92,9 +110,9 @@ def test_metric_updates_prometheus_and_json(capsys, monkeypatch):
 
 
 def test_config_loads_from_file(tmp_path, monkeypatch):
-    """Verify config loads from JSON file."""
+    """Verify config loads from environment variables format file."""
     cfg_file = tmp_path / ".configs"
-    cfg_file.write_text(json.dumps({"APP_NAME": "from_file", "LOG_LEVEL": "DEBUG"}))
+    cfg_file.write_text("APP_NAME=from_file\nLOG_LEVEL=DEBUG")
     
     monkeypatch.delenv('APP_NAME', raising=False)
     monkeypatch.delenv('LOG_LEVEL', raising=False)
@@ -107,7 +125,7 @@ def test_config_loads_from_file(tmp_path, monkeypatch):
 def test_config_env_overrides_file(tmp_path, monkeypatch):
     """Verify environment variables override file config."""
     cfg_file = tmp_path / ".configs"
-    cfg_file.write_text(json.dumps({"APP_NAME": "from_file"}))
+    cfg_file.write_text("APP_NAME=from_file")
     
     monkeypatch.setenv('APP_NAME', 'from_env')
     monkeypatch.delenv('LOG_LEVEL', raising=False)
@@ -136,3 +154,7 @@ def test_metrics_counter_increments(capsys, monkeypatch):
     assert obj1['metric_value'] == 1.0
     assert obj2['metric_value'] == 2.0
     assert obj3['metric_value'] == 3.5
+    # owner should be consistently set
+    assert obj1['owner'] == 'default_owner'
+    assert obj2['owner'] == 'default_owner'
+    assert obj3['owner'] == 'default_owner'
