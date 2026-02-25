@@ -44,6 +44,7 @@ class Logger:
             "info": info or {},
             "app_name": app_name or self.cfg.APP_NAME,
             "app_type": app_type or self.cfg.APP_TYPE,
+            "owner": self.cfg.OWNER,
             # include metric identification and value
             "metric_name": name,
             "metric_value": value,

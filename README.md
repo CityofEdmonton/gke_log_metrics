@@ -50,7 +50,7 @@ print(logger.metrics_to_prometheus())
 
 Configuration is loaded in this order (later overrides earlier):
 1. Library defaults
-2. `.configs` JSON file (or custom path via `CONFIG_FILE` env var)
+2. `.configs` file (environment variables format, or custom path via `CONFIG_FILE` env var)
 3. OS environment variables
 
 ### Environment Variables
@@ -58,22 +58,22 @@ Configuration is loaded in this order (later overrides earlier):
 | Variable | Type | Default | Purpose |
 |----------|------|---------|---------|
 | `APP_NAME` | string | `"default_app"` | Application name in log entries |
-| `APP_TYPE` | string | `"gke_job"` | Application type (e.g., `gke_job`, `gke_api`, `shinyproxy_app`) |
+| `APP_TYPE` | string | `"default_type"` | Application type (e.g., `gke_job`, `gke_api`, `shinyproxy_app`) |
+| `OWNER` | string | `"default_owner"` | Owner or team name in log entries |
 | `METRICS_ENABLED` | bool | `true` | Enable JSON metrics to stdout (ignores `LOG_LEVEL`) |
 | `PROMETHEUS_ENABLED` | bool | `false` | Enable Prometheus-format metrics collection |
 | `LOG_LEVEL` | string | `"INFO"` | Python logging level (only affects `logger.log()`, not metrics) |
-| `CONFIG_FILE` | string | `".configs"` | Path to JSON config file |
+| `CONFIG_FILE` | string | `".configs"` | Path to environment variables format config file |
 
 ### Example `.configs` file
 
-```json
-{
-  "APP_NAME": "my_backup_app",
-  "APP_TYPE": "gke_job",
-  "METRICS_ENABLED": true,
-  "PROMETHEUS_ENABLED": true,
-  "LOG_LEVEL": "DEBUG"
-}
+```
+APP_NAME=my_backup_app
+APP_TYPE=gke_job
+OWNER=data_team
+METRICS_ENABLED=true
+PROMETHEUS_ENABLED=true
+LOG_LEVEL=DEBUG
 ```
 
 ## API Reference
@@ -139,6 +139,7 @@ logger.json_metric(
 {
     "info": { "custom": "object" },
     "app_name": "my_app",
+    "owner": "data_team",
     "app_type": "gke_job",
     "metric_name": "backup_completed",
     "metric_value": 1.0,
