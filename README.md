@@ -263,24 +263,45 @@ When you create a GitHub Release, the CI/CD workflow automatically builds and pu
 
 For users who need to publish without creating a GitHub Release:
 
-1. **Install build tools:**
+1. **Create `~/.pypirc` configuration file:**
+   ```bash
+   cat > ~/.pypirc << 'EOF'
+   [distutils]
+   index-servers =
+       pypi
+
+   [pypi]
+   username = __token__
+   password = pypi-<your-token-here>
+   EOF
+   ```
+   Replace `<your-token-here>` with your PyPI API token from https://pypi.org/account/tokens/
+
+2. **Secure the file:**
+   ```bash
+   chmod 600 ~/.pypirc
+   ```
+
+3. **Install build tools:**
    ```bash
    pip install build twine
    ```
 
-2. **Build the package:**
+4. **Build the package:**
    ```bash
    python -m build
    ```
 
-3. **Publish to PyPI:**
+5. **Publish to PyPI:**
    ```bash
-   twine upload dist/* -u __token__ -p $PYPI_TOKEN
+   twine upload dist/*
    ```
-   Or with your PyPI token inline (replace `<your-pypi-token>`):
-   ```bash
-   twine upload dist/* -u __token__ -p pypi-<your-pypi-token>
-   ```
+
+**Why `.pypirc`?**
+- Cleaner than passing tokens on command line
+- More secure (token not visible in shell history)
+- Works consistently across different shells
+- Standard Python packaging practice
 
 **Note:** Requires PyPI account and API token from https://pypi.org/account/tokens/
 
