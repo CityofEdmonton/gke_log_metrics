@@ -58,7 +58,8 @@ Configuration is loaded in this order (later overrides earlier):
 | Variable | Type | Default | Purpose |
 |----------|------|---------|---------|
 | `APP_NAME` | string | `"default_app"` | Application name in log entries |
-| `APP_TYPE` | string | `"gke_job"` | Application type (e.g., `gke_job`, `gke_api`, `shinyproxy_app`) |
+| `APP_TYPE` | string | `"default_type"` | Application type (e.g., `gke_job`, `gke_api`, `shinyproxy_app`) |
+| `OWNER` | string | `"default_owner"` | Owner or team name in log entries |
 | `METRICS_ENABLED` | bool | `true` | Enable JSON metrics to stdout (ignores `LOG_LEVEL`) |
 | `PROMETHEUS_ENABLED` | bool | `false` | Enable Prometheus-format metrics collection |
 | `LOG_LEVEL` | string | `"INFO"` | Python logging level (only affects `logger.log()`, not metrics) |
@@ -70,6 +71,7 @@ Configuration is loaded in this order (later overrides earlier):
 {
   "APP_NAME": "my_backup_app",
   "APP_TYPE": "gke_job",
+  "OWNER": "data_team",
   "METRICS_ENABLED": true,
   "PROMETHEUS_ENABLED": true,
   "LOG_LEVEL": "DEBUG"
@@ -139,6 +141,7 @@ logger.json_metric(
 {
     "info": { "custom": "object" },
     "app_name": "my_app",
+    "owner": "data_team",
     "app_type": "gke_job",
     "metric_name": "backup_completed",
     "metric_value": 1.0,

@@ -14,6 +14,7 @@ class Config:
         # defaults
         self.APP_NAME = "default_app"
         self.APP_TYPE = "default_type"
+        self.OWNER = "default_owner"
         self.METRICS_ENABLED = True
         self.PROMETHEUS_ENABLED = False
         self.LOG_LEVEL = "INFO"
@@ -34,6 +35,7 @@ class Config:
         # environment overrides
         self.APP_NAME = os.getenv("APP_NAME", self.APP_NAME)
         self.APP_TYPE = os.getenv("APP_TYPE", self.APP_TYPE)
+        self.OWNER = os.getenv("OWNER", self.OWNER)
         self.METRICS_ENABLED = os.getenv("METRICS_ENABLED", str(self.METRICS_ENABLED)).lower() == "true"
         self.PROMETHEUS_ENABLED = os.getenv("PROMETHEUS_ENABLED", str(self.PROMETHEUS_ENABLED)).lower() == "true"
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", self.LOG_LEVEL).upper()
