@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gke_log_metrics"
-version = "0.1.1"
+version = "0.2.0"
 description = "GKE-friendly JSON logging and optional Prometheus metrics for Grafana log-based metrics and monitoring"
 authors = [{ name = "Data Science Team" }]
 requires-python = ">=3.8"
