@@ -282,7 +282,7 @@ Notes:
 
 Clone and install in editable mode:
 ```bash
-git clone <repo>
+git clone https://github.com/CityofEdmonton/gke_log_metrics.git
 cd gke_log_metrics
 pip install -e .
 pytest tests/

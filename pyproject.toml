@@ -13,5 +13,5 @@ license = { text = "MIT" }
 keywords = ["gke", "logging", "json", "prometheus", "grafana", "metrics"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/gke_log_metrics"
-Repository = "https://github.com/yourusername/gke_log_metrics.git"
+Homepage = "https://github.com/CityofEdmonton/gke_log_metrics"
+Repository = "https://github.com/CityofEdmonton/gke_log_metrics.git"
