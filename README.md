@@ -227,6 +227,63 @@ Run the test suite:
 pytest tests/ -v
 ```
 
+## Publishing to PyPI
+
+### Option 1: Automatic Publishing via GitHub Actions (Recommended)
+
+When you create a GitHub Release, the CI/CD workflow automatically builds and publishes to PyPI:
+
+1. **Update version** in `pyproject.toml`:
+   ```toml
+   version = "0.2.0"  # Increment as needed
+   ```
+
+2. **Commit and push** the version bump:
+   ```bash
+   git add pyproject.toml
+   git commit -m "Bump version to 0.2.0"
+   git push origin master
+   ```
+
+3. **Create a GitHub Release**:
+   - Go to: https://github.com/CityofEdmonton/gke_log_metrics/releases/new
+   - **Tag:** `v0.2.0` (must match version in `pyproject.toml`)
+   - **Title:** `Release v0.2.0`
+   - **Description:** Document your changes and improvements
+   - Click **"Publish release"**
+
+4. **GitHub Actions automatically:**
+   - Builds the package
+   - Publishes to PyPI
+   - Monitor progress at: https://github.com/CityofEdmonton/gke_log_metrics/actions
+
+**Result:** Users can install with `pip install gke_log_metrics`
+
+### Option 2: Manual Publishing
+
+For users who need to publish without creating a GitHub Release:
+
+1. **Install build tools:**
+   ```bash
+   pip install build twine
+   ```
+
+2. **Build the package:**
+   ```bash
+   python -m build
+   ```
+
+3. **Publish to PyPI:**
+   ```bash
+   twine upload dist/* -u __token__ -p $PYPI_TOKEN
+   ```
+   Or with your PyPI token inline (replace `<your-pypi-token>`):
+   ```bash
+   twine upload dist/* -u __token__ -p pypi-<your-pypi-token>
+   ```
+
+**Note:** Requires PyPI account and API token from https://pypi.org/account/tokens/
+
 ## Use Cases
 
 ### GKE Log-Based Metrics
