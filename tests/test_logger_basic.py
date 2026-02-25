@@ -110,9 +110,9 @@ def test_metric_updates_prometheus_and_json(capsys, monkeypatch):
 
 
 def test_config_loads_from_file(tmp_path, monkeypatch):
-    """Verify config loads from JSON file."""
+    """Verify config loads from environment variables format file."""
     cfg_file = tmp_path / ".configs"
-    cfg_file.write_text(json.dumps({"APP_NAME": "from_file", "LOG_LEVEL": "DEBUG"}))
+    cfg_file.write_text("APP_NAME=from_file\nLOG_LEVEL=DEBUG")
     
     monkeypatch.delenv('APP_NAME', raising=False)
     monkeypatch.delenv('LOG_LEVEL', raising=False)
@@ -125,7 +125,7 @@ def test_config_loads_from_file(tmp_path, monkeypatch):
 def test_config_env_overrides_file(tmp_path, monkeypatch):
     """Verify environment variables override file config."""
     cfg_file = tmp_path / ".configs"
-    cfg_file.write_text(json.dumps({"APP_NAME": "from_file"}))
+    cfg_file.write_text("APP_NAME=from_file")
     
     monkeypatch.setenv('APP_NAME', 'from_env')
     monkeypatch.delenv('LOG_LEVEL', raising=False)
